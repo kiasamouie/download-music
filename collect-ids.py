@@ -9,7 +9,7 @@ from datetime import timedelta
 def split_list(ids):
     random.shuffle(ids)
     split = {}
-    chunk_size = 30
+    chunk_size = 500
     for i, n in enumerate(range(0, len(ids), chunk_size)):
         count = f' - {i+1}' if len(ids) > chunk_size else ""
         split[f'{title}{count}'] = ids[n:n+chunk_size]

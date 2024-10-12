@@ -1,29 +1,60 @@
 import requests
 
-headers = {
-    'Accept': 'application/json, text/javascript, */*; q=0.01',
-    'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8,de;q=0.7,fa;q=0.6',
-    'Authorization': 'OAuth 2-294363-66593390-eXeioIxb0xltWzq',
-    'Connection': 'keep-alive',
-    'DNT': '1',
-    'Origin': 'https://soundcloud.com',
-    'Referer': 'https://soundcloud.com/',
-    'Sec-Fetch-Dest': 'empty',
-    'Sec-Fetch-Mode': 'cors',
-    'Sec-Fetch-Site': 'same-site',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-    'sec-ch-ua': '"Not A(Brand";v="99", "Google Chrome";v="121", "Chromium";v="121"',
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': '"Windows"',
-}
+def getSpecialSubstring(s, k, charValue):
+    # Map each character to its special value based on charValue
+    special_values = {chr(i + ord('a')): int(charValue[i]) for i in range(26)}
 
-params = {
-    'client_id': 'BE3UbKaeTvRBIgQh87b0PnePIWA4OH8g',
-    'limit': '25',
-    'offset': '0',
-    'linked_partitioning': '1',
-    'app_version': '1707232868',
-    'app_locale': 'en',
-}
+    max_length = 0
+    left = 0
+    zero_count = 0
 
-response = requests.get('https://api-v2.soundcloud.com/me/play-history/tracks', params=params, headers=headers)
+    # Sliding window approach
+    for right in range(len(s)):
+        # Check if the current character is a `0`-mapped character
+        if special_values[s[right]] == 0:
+            zero_count += 1
+
+        # If zero_count exceeds `k`, move the left pointer to the right
+        while zero_count > k:
+            if special_values[s[left]] == 0:
+                zero_count -= 1
+            left += 1
+        
+        # Update maximum length of valid substring
+        max_length = max(max_length, right - left + 1)
+
+    return max_length
+
+def getArticleTitles():
+    url = 'https://jsonmock.hackerrank.com/api/articles'
+    titles = []
+    page = 1
+    
+    # Fetch the first page to get total pages
+    response = requests.get(url, params={'author': 'epaga', 'page': page})
+    if response.status_code == 200:
+        data = response.json()
+        total_pages = data['total_pages']
+        
+        # Iterate through all pages
+        while page <= total_pages:
+            response = requests.get(url, params={'author': 'epaga', 'page': page})
+            if response.status_code == 200:
+                data = response.json()
+                for article in data['data']:
+                    # Append title or story_title if available
+                    title = article.get('title')
+                    story_title = article.get('story_title')
+                    if title:
+                        titles.append(title)
+                    elif story_title:
+                        titles.append(story_title)
+            
+            page += 1
+    print(titles)
+    return '\n'.join(titles)
+
+if __name__ == '__main__':
+    result = getSpecialSubstring('giraffe', 2, '01111001111111111011111111')
+    print(result)
+    # print(getArticleTitles())
